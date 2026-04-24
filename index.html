@@ -595,7 +595,7 @@ function buildScriptPrompt(){
 async function callAPI(prompt){
   var key=apiKey||localStorage.getItem("cak")||"";
   if(!key)throw new Error("no_key");
-  var res=await fetch("https://api.anthropic.com/v1/messages",{
+  var res=await fetch("https://claude-proxy.twm0953589092.workers.dev",{
     method:"POST",
     headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01"},
     body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,messages:[{role:"user",content:prompt}]})
