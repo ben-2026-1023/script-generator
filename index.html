@@ -159,8 +159,7 @@ input::placeholder{color:var(--text3)}
 .copy-ok.show{display:block}
 
 /* API Key */
-.api-bar{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius);padding:12px 16px;display:flex;gap:10px;align-items:center;margin-bottom:16px;font-size:13px;color:#b45309}
-.api-bar input{flex:1;background:#fff;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;font-family:"Noto Sans TC",sans-serif;outline:none;color:var(--text)}
+
 
 /* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
@@ -313,10 +312,12 @@ input::placeholder{color:var(--text3)}
   <div class="sec">
     <div class="sec-title">發佈平台</div>
     <div class="chips" id="platform">
-      <span class="chip" onclick="pick('platform',this,'TikTok / 抖音')">TikTok / 抖音</span>
+      <span class="chip" onclick="pick('platform',this,'TikTok')">TikTok</span>
       <span class="chip" onclick="pick('platform',this,'Instagram Reels')">Instagram Reels</span>
+      <span class="chip" onclick="pick('platform',this,'LINE VOOM')">LINE VOOM</span>
+      <span class="chip" onclick="pick('platform',this,'Facebook')">Facebook</span>
       <span class="chip" onclick="pick('platform',this,'YouTube Shorts')">YouTube Shorts</span>
-      <span class="chip" onclick="pick('platform',this,'小紅書')">小紅書</span>
+      <span class="chip" onclick="pick('platform',this,'Threads')">Threads</span>
     </div>
   </div>
 
@@ -407,12 +408,7 @@ input::placeholder{color:var(--text3)}
   <div class="page-title">確認設定 · 生成腳本</div>
   <div class="page-sub">確認以下內容後，AI 將為你發想5個主題方向</div>
 
-  <!-- API Key -->
-  <div class="api-bar" id="apiBar">
-    <span>🔑</span>
-    <input type="password" id="apiKey" placeholder="貼上 Claude API Key（sk-ant-...）">
-    <button class="btn-secondary" onclick="saveKey()">儲存</button>
-  </div>
+
 
   <!-- Summary -->
   <div class="sec">
@@ -476,7 +472,7 @@ input::placeholder{color:var(--text3)}
 
 <script>
 var s={ip:null,fmt:"",fmtDesc:"",platform:"",location:"",tone:"",audience:[],goal:"",limits:[]};
-var apiKey=localStorage.getItem("cak")||"";
+var apiKey="FROM_WORKER";
 var topics=[];var selTopic="";
 
 var clients=[
@@ -497,12 +493,7 @@ function enterApp(){
   var sp=document.getElementById("splash"),app=document.getElementById("app");
   sp.classList.add("exit");
   setTimeout(function(){sp.style.display="none";app.classList.add("show");setTimeout(function(){app.classList.add("visible");},50);},700);
-  if(apiKey){
-    document.getElementById("apiKey").value="●".repeat(20);
-    document.getElementById("apiBar").style.background="#f0fdf4";
-    document.getElementById("apiBar").style.borderColor="#bbf7d0";
-    document.getElementById("apiBar").style.color="#15803d";
-  }
+
 }
 
 // Page nav
@@ -569,15 +560,7 @@ function buildSummary(){
 }
 
 // API key
-function saveKey(){
-  var v=document.getElementById("apiKey").value.trim();
-  if(!v||v.includes("●"))return;
-  apiKey=v;localStorage.setItem("cak",v);
-  document.getElementById("apiKey").value="●".repeat(20);
-  document.getElementById("apiBar").style.background="#f0fdf4";
-  document.getElementById("apiBar").style.borderColor="#bbf7d0";
-  document.getElementById("apiBar").style.color="#15803d";
-}
+
 
 // Build prompt
 function buildIdeatePrompt(){
@@ -585,7 +568,20 @@ function buildIdeatePrompt(){
   var lim=s.limits.length?"\n內容限制："+s.limits.join("、"):"";
   var loc=s.location?"\n拍攝場地："+s.location:"";
   var nt=note?"\n補充："+note:"";
-  return "我要為以下帳號發想短影音主題，請給我 5 個：\n\nIP："+s.ip.name+"\n帳號數據與爆款邏輯："+s.ip.desc+"\n平台："+s.platform+loc+"\n拍攝形式："+s.fmt+"（"+s.fmtDesc+"）\n目標受眾："+s.audience.join("、")+"\n調性："+s.tone+"\n目的："+s.goal+lim+nt+"\n\n發想規則（嚴格遵守）：\n- 主題不要限制在該帳號的行業或職業，要找任何人都有共鳴的人性話題，透過這個IP的視角和人設去執行\n- 主題要配合所選的拍攝形式去發想，讓主題和形式天然契合\n- 主題要像真人在說話，不要像AI在寫標題\n- 每個主題長短不一，不要格式一模一樣\n- 要有真實衝突、反轉空間、或獵奇元素，讓人看到第一句就停住\n- 好的主題語感參考：「我打給欠我三萬的朋友，他說他在柬埔寨」、「台中有個流浪漢每天坐在同一個地方，今天我去問他為什麼」\n- 直接給主題，最多一句話補充，不要每個都有固定格式說明\n- 不要說教感、太正能量、太工整\n\n請用1-5數字列出，每個一行，用繁體中文，語氣自然。";
+  var platformLogic={
+    "TikTok":"TikTok爆款邏輯：前3秒必須有強鉤子讓人停住，節奏快、反差強、情緒衝擊大，善用懸念和反轉，結尾要有強CTA推動追蹤或分享",
+    "Instagram Reels":"Instagram Reels爆款邏輯：視覺美感和質感很重要，開場要有畫面衝擊，故事性強，情感共鳴高，適合生活感和精緻感內容，hashtag要精準",
+    "LINE VOOM":"LINE VOOM爆款邏輯：台灣在地化內容表現最好，生活實用資訊、在地話題、家庭親子或中年受眾共鳴內容最容易擴散，語氣親切接地氣",
+    "Facebook":"Facebook爆款邏輯：情感共鳴型和爭議討論型內容分享率最高，標題要勾起好奇或情緒，長度可稍長，鼓勵留言互動，台灣本土話題效果好",
+    "YouTube Shorts":"YouTube Shorts爆款邏輯：前2秒要有強視覺衝擊，資訊密度高，讓人看完有收穫感，懸念式開場效果最好，結尾引導訂閱或看下一支",
+    "Threads":"Threads爆款邏輯：文字為主，觀點鮮明有個性，反差感強，引發討論和共鳴，語氣像在跟朋友說話，不要太正式，短句衝擊力強"
+  };
+  var platLogic=platformLogic[s.platform]||"";
+  var isThreads=(s.platform==="Threads");
+  if(isThreads){
+    return "我要為以下帳號發想Threads文章主題，請給我 5 個：\n\nIP："+s.ip.name+"\n帳號數據與爆款邏輯："+s.ip.desc+"\n平台爆款邏輯："+platLogic+"\n目標受眾："+s.audience.join("、")+"\n調性："+s.tone+"\n目的："+s.goal+lim+nt+"\n\n發想規則：\n- Threads是文字平台，發想的是文章主題不是影片\n- 主題要有強烈觀點或反差，讓人想留言討論\n- 語氣像真人在說話，不要像AI在寫\n- 每個主題長短不一\n- 要有爭議空間或共鳴元素\n\n請用1-5數字列出，每個一行，用繁體中文。";
+  }
+  return "我要為以下帳號發想短影音主題，請給我 5 個：\n\nIP："+s.ip.name+"\n帳號數據與爆款邏輯："+s.ip.desc+"\n平台："+s.platform+"\n平台爆款大數據邏輯："+platLogic+loc+"\n拍攝形式："+s.fmt+"（"+s.fmtDesc+"）\n目標受眾："+s.audience.join("、")+"\n調性："+s.tone+"\n目的："+s.goal+lim+nt+"\n\n發想規則（嚴格遵守）：\n- 主題不要限制在該帳號的行業或職業，要找任何人都有共鳴的人性話題，透過這個IP的視角和人設去執行\n- 主題要配合所選的拍攝形式去發想，讓主題和形式天然契合\n- 主題要像真人在說話，不要像AI在寫標題\n- 每個主題長短不一，不要格式一模一樣\n- 要有真實衝突、反轉空間、或獵奇元素，讓人看到第一句就停住\n- 好的主題語感參考：「我打給欠我三萬的朋友，他說他在柬埔寨」、「台中有個流浪漢每天坐在同一個地方，今天我去問他為什麼」\n- 直接給主題，最多一句話補充，不要每個都有固定格式說明\n- 不要說教感、太正能量、太工整\n\n請用1-5數字列出，每個一行，用繁體中文，語氣自然。";
 }
 
 function buildScriptPrompt(){
@@ -593,12 +589,10 @@ function buildScriptPrompt(){
 }
 
 async function callAPI(prompt){
-  var key=apiKey||localStorage.getItem("cak")||"";
-  if(!key)throw new Error("no_key");
   var res=await fetch("https://claude-proxy.twm0953589092.workers.dev",{
     method:"POST",
-    headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01"},
-    body:JSON.stringify({model:"claude-sonnet-4-5",max_tokens:2000,messages:[{role:"user",content:prompt}]})
+    headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01"},
+    body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:2000,messages:[{role:"user",content:prompt}]})
   });
   var data=await res.json();
   if(data.error)throw new Error(data.error.message);
